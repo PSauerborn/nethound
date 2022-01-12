@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+message Timeseries {
+    string network_id = 1;
+    string start_ts = 2;
+    optional string end_ts = 3;
+}
+
+message NetworkStat {
+    string network_id = 1;
+    float download_speed = 2;
+    // include upload_tested field to differeniate
+    // between 0's because of 0 upload speed or 0's
+    // from unset, default values
+    bool upload_tested = 3;
+    optional float upload_speed = 4;
+    float exec_time = 5;
+    string event_timestamp = 6;
+}
+
+message Status {
+    int32 code = 1;
+    string message = 2;
+}
+
+service NethoundService {
+    rpc StreamNetworkStats(stream NetworkStat) returns (Status) {}
+    rpc StreamNetworkTimeseries(Timeseries) returns (stream NetworkStat) {}
+}

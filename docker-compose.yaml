@@ -1,0 +1,53 @@
+version: '3.7'
+services:
+
+  nethound-rest-server:
+    build:
+      context: api
+      dockerfile: Dockerfile.rest
+    container_name: nethound-rest-server
+    ports:
+    - 10456:10456
+    networks:
+    - nethound
+    - timescale
+    environment:
+      PG_HOST: timescale-server
+      PG_USER: nethound_admin
+      PG_PASSWORD: development
+
+  nethound-grpc-server:
+    build:
+      context: api
+      dockerfile: Dockerfile.grpc
+    container_name: nethound-grpc-server
+    ports:
+    - 50051:50051
+    networks:
+    - nethound
+    - timescale
+    environment:
+      PG_HOST: timescale-server
+      PG_USER: nethound_admin
+      PG_PASSWORD: development
+
+  nethound-client:
+    build:
+      context: client
+      dockerfile: Dockerfile
+    container_name: nethound-client
+    networks:
+    - nethound
+    environment:
+      NETHOUND_GRPC_HOST: nethound.alpinesoftware.net
+      NETHOUND_GRPC_PORT: 50051
+      MAX_BUFFER_SIZE: 10
+      MONITOR_UPLOAD_SPEED: 'false'
+      NETWORK_ID: 31324af4-0f22-42af-a850-f2a07a7be316
+      GRPC_SSL_ENABLED: "true"
+
+networks:
+  timescale:
+    name: timescale
+  nethound:
+    name: nethound
