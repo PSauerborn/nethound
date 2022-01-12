@@ -6,3 +6,7 @@ variable "nethound_grpc_server_version" {
 variable "nethound_rest_server_version" {
     type = string
 }
+
+variable "nethound_client_version" {
+    type = string
+}

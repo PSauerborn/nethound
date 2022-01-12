@@ -7,3 +7,6 @@ Write-Host "Building new docker image(s) with version $Version..."
 
 docker build -t docker.alpinesoftware.net/nethound/client:$Version -f Dockerfile .
 docker push docker.alpinesoftware.net/nethound/client:$Version
+
+docker build -t docker.alpinesoftware.net/nethound/client:$Version-arm -f Dockerfile.arm .
+docker push docker.alpinesoftware.net/nethound/client:$Version-arm

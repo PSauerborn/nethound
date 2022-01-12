@@ -120,6 +120,80 @@ resource "aws_ecs_task_definition" "rest_server" {
     }])
 }
 
+# define ECS task run by service
+resource "aws_ecs_task_definition" "client" {
+
+  family                   = "${var.name}-service-client-${var.environment}"
+
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+
+  # define resouces for each task
+  cpu                      = 256
+  memory                   = 512
+
+  # give task required permissions to access DB and
+  # services running in private subnets
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+  task_role_arn            = aws_iam_role.ecs_task_role.arn
+
+  container_definitions = jsonencode([{
+    name        = "${var.name}-container-client-${var.environment}"
+    image       = "docker.alpinesoftware.net/nethound/client:${var.nethound_client_version}"
+    essential   = true
+    environment = [
+      {
+        "name": "NETHOUND_GRPC_HOST",
+        "value": "nethound.alpinesoftware.net"
+      },
+      {
+        "name": "MONITOR_UPLOAD_SPEED",
+        "value": "true"
+      },
+      {
+        "name": "NETWORK_ID",
+        "value": "01a7a1d2-e1e3-4262-b9ac-c1cd45c53796"
+      },
+      {
+        "name": "GRPC_SSL_ENABLED",
+        "value": "true"
+      }
+    ]
+    repositoryCredentials = {
+      "credentialsParameter": "arn:aws:secretsmanager:eu-west-1:717134789437:secret:docker/alpinesoftware/registry-5eoNqT"
+    }
+    "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+            "awslogs-group": "awslogs-nethound",
+            "awslogs-region": "eu-west-1",
+            "awslogs-stream-prefix": "nethound-rest",
+            "awslogs-create-group": "true"
+        }
+    }
+    portMappings = []
+    }])
+}
+
+# define ecs service to run ECS task via fargate
+resource "aws_ecs_service" "ecs_service_client" {
+
+  name    = "${var.name}-service-client-${var.environment}"
+  cluster = aws_ecs_cluster.ecs_cluster.id
+
+  # add container tasks to ecs service
+  task_definition                    = aws_ecs_task_definition.client.arn
+  desired_count                      = 1
+  launch_type                        = "FARGATE"
+  scheduling_strategy                = "REPLICA"
+
+  network_configuration {
+    security_groups  = [aws_security_group.ecs_tasks.id]
+    subnets          = [aws_subnet.private_subnet.id]
+    assign_public_ip = false
+  }
+}
+
 # define ecs service to run ECS task via fargate
 resource "aws_ecs_service" "ecs_service_rest" {
 
