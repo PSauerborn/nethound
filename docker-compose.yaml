@@ -1,6 +1,18 @@
 version: '3.7'
 services:
 
+  nethound-ui:
+    build:
+      context: ui
+      dockerfile: Dockerfile
+    container_name: nethound-ui
+    ports:
+    - 8501:8501
+    networks:
+    - nethound
+    environment:
+      NETHOUND_API_URL: http://nethound-rest-server:10456
+
   nethound-rest-server:
     build:
       context: api
@@ -39,12 +51,12 @@ services:
     networks:
     - nethound
     environment:
-      NETHOUND_GRPC_HOST: nethound.alpinesoftware.net
+      NETHOUND_GRPC_HOST: nethound-grpc-server
       NETHOUND_GRPC_PORT: 50051
       MAX_BUFFER_SIZE: 10
       MONITOR_UPLOAD_SPEED: 'false'
-      NETWORK_ID: 31324af4-0f22-42af-a850-f2a07a7be316
-      GRPC_SSL_ENABLED: "true"
+      NETWORK_ID: f6c9f40b-7102-4dc1-9d40-ac82fbf335d6
+      GRPC_SSL_ENABLED: 'false'
 
 networks:
   timescale:
